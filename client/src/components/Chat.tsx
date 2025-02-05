@@ -21,6 +21,7 @@ interface Message {
 const Chat = ({ socket, username, room }: Props) => {
   const [currentMessage, setCurrentMessage] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
+  const [currentAIMessage, setCurrentAIMessage] = useState<Message | null>(null);
 
   const sendMessage = async () => {
     if (currentMessage !== "") {
@@ -39,7 +40,8 @@ const Chat = ({ socket, username, room }: Props) => {
         time: timeString,
       };
       setMessageList((prev) => [...prev, message]);
-      await socket.emit("send_message", message);
+      setCurrentAIMessage(null); // Reset current AI message
+      await socket.emit("generate_text", currentMessage);
       setCurrentMessage("");
     }
   };
@@ -49,10 +51,50 @@ const Chat = ({ socket, username, room }: Props) => {
       setMessageList((prev) => [...prev, data]);
     });
 
+    socket.on("text_chunk", (chunk: string) => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+
+      if (currentAIMessage) {
+        // Append to the current AI message
+        setCurrentAIMessage((prev) => ({
+          ...prev!,
+          message: prev!.message + chunk,
+        }));
+      } else {
+        // Create a new AI message
+        const message: Message = {
+          room,
+          id: socket.id,
+          author: "AI",
+          message: chunk,
+          time: timeString,
+        };
+        setCurrentAIMessage(message);
+        setMessageList((prev) => [...prev, message]);
+      }
+    });
+
     return () => {
       socket.off("receive_message");
+      socket.off("text_chunk");
     };
-  }, [socket]);
+  }, [socket, currentAIMessage]);
+
+  useEffect(() => {
+    if (currentAIMessage) {
+      // Update the message list with the current AI message
+      setMessageList((prev) => {
+        const updatedList = [...prev];
+        updatedList[updatedList.length - 1] = currentAIMessage;
+        return updatedList;
+      });
+    }
+  }, [currentAIMessage]);
 
   return (
     <div className="w-full bg-white/10 backdrop-blur-md rounded-xl pb-8 pt-4 px-4">
@@ -69,9 +111,9 @@ const Chat = ({ socket, username, room }: Props) => {
               <div
                 key={index}
                 className={`flex flex-col p-2.5 mb-2 rounded-md w-[70%] sm:w-80 ${
-                  message.id === socket.id
-                    ? "bg-purple-800 self-end"
-                    : "bg-slate-800 self-start"
+                  message.author === username
+                    ? "bg-purple-800 self-end text-white"
+                    : "bg-black self-start text-white"
                 }`}
               >
                 <p className="font-bold">{message.author}</p>
