@@ -3,7 +3,7 @@ const fs = require('fs');
 
 async function* generateTextStream(prompt) {
     let data = JSON.stringify({
-        "model": "deepseek-coder-v2:latest",
+        "model": "deepseek-coder:6.7b",
         "prompt": prompt
     });
 

@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import io from "socket.io-client";
-import Chat from "./components/Chat";
+import Chat from "./components/Chat_copy";
+import Login from "./app/login/page";
+import Home from "./app/page";
 
 const PORT = import.meta.env.PORT || '3001';
 const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://localhost:${PORT}`;
@@ -19,35 +22,11 @@ function App() {
   };
 
   return (
-    <div className="px-8 flex items-center justify-center text-white bg-[url(/src/assets/background.jpg)] bg-no-repeat bg-cover w-full h-screen">
-      {!showChat ? (
-        <div className="w-fit flex flex-col justify-center items-center text-center space-y-2 bg-white/10 backdrop-blur-sm rounded-xl py-8 px-4">
-          <h1 className="text-3xl font-bold">Welcome to SocketGram</h1>
-          <input
-            type="text"
-            placeholder="Your nickname"
-            onChange={(e) => setUsername(e.target.value)}
-            value={username}
-            className="outline-none text-black p-2 rounded-md overflow-hidden w-[300px]"
-          />
-          <input
-            type="text"
-            placeholder="Room ID"
-            onChange={(e) => setRoom(e.target.value)}
-            value={room}
-            className="outline-none text-black p-2 rounded-md overflow-hidden md:max-w-96 w-[300px]"
-          />
-          <button
-            onClick={joinRoom}
-            className="p-2 bg-blue-500 hover:bg-blue-700 rounded-md font-medium w-[300px]"
-          >
-            Join a Room
-          </button>
-        </div>
-      ) : (
-        <Chat socket={socket} username={username} room={room} />
-      )}
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login username={username} setUsername={setUsername} room={room} setRoom={setRoom} />} />
+      <Route path="/chat" element={<Chat socket={socket} username={username} room={room} />} />
+    </Routes>
   );
 }
 
