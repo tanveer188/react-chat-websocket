@@ -1,8 +1,8 @@
-const express = require("express");
-const http = require("http");
-const cors = require("cors");
-const { Server } = require("socket.io");
-const { generateTextStream } = require("./chat"); // Ensure chat.js is in the same directory
+import express from "express";
+import { createServer } from "http";
+import cors from "cors";
+import { Server } from "socket.io";
+import { generateTextStream } from "./chat.js";
 
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
@@ -10,7 +10,7 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 const app = express();
 app.use(cors());
 
-const server = http.createServer(app);
+const server = createServer(app);
 
 const io = new Server(server, {
   cors: {
