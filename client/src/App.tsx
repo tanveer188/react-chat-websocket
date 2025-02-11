@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import io from "socket.io-client";
-import Chat from "./components/Chat_copy";
+import Chat from "./app/chat/Chat_copy";
 import Login from "./app/login/page";
 import Home from "./app/page";
 
@@ -12,14 +12,7 @@ const socket = io(VITE_SERVER_URL);
 function App() {
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState("");
-  const [showChat, setShowChat] = useState(false);
 
-  const joinRoom = () => {
-    if (username !== "" && room !== "") {
-      socket.emit("join_room", room);
-      setShowChat(true);
-    }
-  };
 
   return (
     <Routes>
