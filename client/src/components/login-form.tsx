@@ -3,16 +3,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"
+import { useState } from "react";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"form">) {
-  const navigate = useNavigate(); // Initialize useNavigate
+interface LoginFormProps extends React.ComponentPropsWithoutRef<"form"> {
+  className?: string;
+}
 
-  const handleLoginClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault(); // Prevent form submission
-    navigate("/chat");
+export function LoginForm({ className, ...props }: LoginFormProps) {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const navigate = useNavigate();
+
+  const handleLoginClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    try {
+      const response = await axios.post("http://localhost:3001/user/login", {
+        email,
+        password
+      });
+
+      if (response.status === 201) {
+        console.log(response.data)
+        // Store user data as string since localStorage only accepts strings
+        localStorage.setItem("userData", JSON.stringify(response.data));
+        navigate("/chat");
+      }
+    } catch (error) {
+      console.error(error);
+      alert('An unexpected error occurred');
+    }
   };
 
   return (
@@ -26,21 +46,22 @@ export function LoginForm({
       <div className="grid gap-6">
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="m@example.com" required />
+          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="m@example.com" required />
         </div>
         <div className="grid gap-2">
-          <div className="flex items-center">
-            <Label htmlFor="password">Password</Label>
+          <div className="flex flex-col justify-center">
+            <Label className="mb-1" htmlFor="password" >Password</Label>
+            <Input id="password" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+          </div>
             <a
               href="#"
               className="ml-auto text-sm underline-offset-4 hover:underline"
             >
               Forgot your password?
             </a>
-          </div>
-          <Input id="password" type="password" required />
+          
         </div>
-        <Button type="submit" className="w-full" onClick={handleLoginClick}>
+        <Button type="submit" className="w-full"  onClick={handleLoginClick}>
           Login
         </Button>
         <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
@@ -60,7 +81,7 @@ export function LoginForm({
       </div>
       <div className="text-center text-sm">
         Don&apos;t have an account?{" "}
-        <a href="#" className="underline underline-offset-4">
+        <a onClick={()=>{window.location.href="/signup"}} href="#" className="underline underline-offset-4">
           Sign up
         </a>
       </div>
