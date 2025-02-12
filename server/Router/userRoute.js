@@ -1,10 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const User = require('../Model/Usermodel');
+import { Router } from 'express';
+const router = Router();
+import { find, create, findOne } from '../Model/Usermodel.js';
 
 router.get('/findUser', async (req, res) => {
   try {
-    const users = await User.find().select('-password');
+    const users = await find().select('-password');
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -13,7 +13,7 @@ router.get('/findUser', async (req, res) => {
 
 router.post('/createUser', async (req, res) => {
     let{username,email,password}=req.body;
-  const user = User.create({
+  const user = create({
     username,
     email,
     password
@@ -31,7 +31,7 @@ router.post('/createUser', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await findOne({ email });
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid username or password' });
@@ -49,4 +49,4 @@ router.post('/login', async (req, res) => {
 
 
 
-module.exports = router;
+export default router;

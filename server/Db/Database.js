@@ -1,13 +1,15 @@
-const dotenv=require("dotenv")
-dotenv.config()
-const {  mongoose } = require("mongoose");
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
-const Db =mongoose.connect("mongodb://localhost:27017/ChatGpt")
-.then(()=>{
+dotenv.config();
+
+const Db = mongoose.connect("mongodb://localhost:27017/ChatGpt")
+  .then(() => {
     console.log("Database Connectivity");
-})
-.catch((error)=>{
-    console.error(error)
+  })
+  .catch((error) => {
+    console.error(error);
     console.log(error);
-})
-module.exports=Db;
+  });
+
+export default Db;
