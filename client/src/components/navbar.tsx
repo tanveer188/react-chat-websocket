@@ -9,7 +9,9 @@ export default function Navbar() {
   const handleLoginClick = () => {
     navigate("/login");
   };
-
+  const handleSignupClick = () => {
+    navigate("/signup");
+  };
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -29,7 +31,8 @@ export default function Navbar() {
       </div>
 
       <div className="hidden md:flex items-center space-x-4">
-        <Button variant="ghost" className="text-white hover:text-purple-400">
+        <Button variant="ghost" className="text-white hover:text-purple-400"
+         onClick={handleSignupClick}>
           Sign In
         </Button>
         <Button 

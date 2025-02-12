@@ -1,16 +1,26 @@
 const express = require("express");
+const app=express()
 const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const { generateTextStream } = require("./chat"); // Ensure chat.js is in the same directory
-
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
-
-const app = express();
+const Db=require("./Db/Database")
 app.use(cors());
 
+// Add these middleware before your routes
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ... existing code ... 
 const server = http.createServer(app);
+const userRoute=require("./Router/userRoute")
+
+app.use("/user",userRoute);
+
+
+
 
 const io = new Server(server, {
   cors: {
