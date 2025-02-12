@@ -5,9 +5,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Settings, Menu } from "lucide-react"
 import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
-
+import { FileInput } from "@/components/FileInput"
 import IconSendFill from "./IconSendFill";
-
+import React,{useRef} from "react"
 interface Props {
   socket: Socket;
   username: string;
@@ -22,90 +22,99 @@ interface Message {
   time: string;
 }
 export default function ChatTemplate({ socket, username, room }: Props) {
-  const [currentMessage, setCurrentMessage] = useState("");
-    const [messageList, setMessageList] = useState<Message[]>([]);
-    const [currentAIMessage, setCurrentAIMessage] = useState<Message | null>(null);
 
-  
-    const sendMessage = async () => {
-      if (currentMessage !== "") {
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        const timeString = `${hours.toString().padStart(2, "0")}:${minutes
-          .toString()
-          .padStart(2, "0")}`;
-  
+  const [messageList, setMessageList] = useState<Message[]>([]);
+  const [currentAIMessage, setCurrentAIMessage] = useState<Message | null>(null);
+  const [currentMessage, setCurrentMessage] = useState<string>("");
+  const textRef = useRef<HTMLTextAreaElement | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCurrentMessage(e.target.value);
+    if (textRef.current) {
+      textRef.current.style.height = "auto"; // Reset height for recalculation
+      textRef.current.style.height = `${Math.min(textRef.current.scrollHeight, 200)}px`; // Limit height to 200px
+    }
+  };
+
+  const sendMessage = async () => {
+    if (currentMessage !== "") {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+
+      const message: Message = {
+        room,
+        id: socket.id,
+        author: username,
+        message: currentMessage,
+        time: timeString,
+      };
+      setMessageList((prev) => [...prev, message]);
+      setCurrentAIMessage(null); // Reset current AI message
+      await socket.emit("generate_text", currentMessage);
+      setCurrentMessage("");
+    }
+  };
+
+  useEffect(() => {
+    socket.on("receive_message", (data: Message) => {
+      setMessageList((prev) => [...prev, data]);
+    });
+
+    socket.on("text_chunk", (chunk: string) => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+
+      if (currentAIMessage) {
+        // Append to the current AI message
+        setCurrentAIMessage((prev) => ({
+          ...prev!,
+          message: prev!.message + chunk,
+        }));
+      } else {
+        // Create a new AI message
         const message: Message = {
           room,
           id: socket.id,
-          author: username,
-          message: currentMessage,
+          author: "AI",
+          message: chunk,
           time: timeString,
         };
+        setCurrentAIMessage(message);
         setMessageList((prev) => [...prev, message]);
-        setCurrentAIMessage(null); // Reset current AI message
-        await socket.emit("generate_text", currentMessage);
-        setCurrentMessage("");
       }
+    });
+
+    return () => {
+      socket.off("receive_message");
+      socket.off("text_chunk");
     };
-  
-    useEffect(() => {
-      socket.on("receive_message", (data: Message) => {
-        setMessageList((prev) => [...prev, data]);
+  }, [socket, currentAIMessage]);
+
+  useEffect(() => {
+    if (currentAIMessage) {
+      // Update the message list with the current AI message
+      setMessageList((prev) => {
+        const updatedList = [...prev];
+        updatedList[updatedList.length - 1] = currentAIMessage;
+        return updatedList;
       });
-  
-      socket.on("text_chunk", (chunk: string) => {
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        const timeString = `${hours.toString().padStart(2, "0")}:${minutes
-          .toString()
-          .padStart(2, "0")}`;
-  
-        if (currentAIMessage) {
-          // Append to the current AI message
-          setCurrentAIMessage((prev) => ({
-            ...prev!,
-            message: prev!.message + chunk,
-          }));
-        } else {
-          // Create a new AI message
-          const message: Message = {
-            room,
-            id: socket.id,
-            author: "AI",
-            message: chunk,
-            time: timeString,
-          };
-          setCurrentAIMessage(message);
-          setMessageList((prev) => [...prev, message]);
-        }
-      });
-  
-      return () => {
-        socket.off("receive_message");
-        socket.off("text_chunk");
-      };
-    }, [socket, currentAIMessage]);
-  
-    useEffect(() => {
-      if (currentAIMessage) {
-        // Update the message list with the current AI message
-        setMessageList((prev) => {
-          const updatedList = [...prev];
-          updatedList[updatedList.length - 1] = currentAIMessage;
-          return updatedList;
-        });
-      }
-    }, [currentAIMessage]);
+    }
+  }, [currentAIMessage]);
 
 
   return (
-    <div className="dark h-screen">
-      <div className="grid lg:grid-cols-[280px_1fr] h-full">
+    <div className="dark ">
+      <div className="h-screen grid lg:grid-cols-[280px_1fr]">
         {/* Sidebar */}
-        <div className="border-r bg-zinc-950 lg:block">
+        <div className="h-screen  overflow-y-scroll border-r bg-zinc-950 lg:block">
           <div className="flex h-[60px] items-center px-6 gap-4 border-b">
             <Button variant="ghost" size="icon" className="lg:hidden">
               <Menu className="h-6 w-6" />
@@ -118,7 +127,7 @@ export default function ChatTemplate({ socket, username, room }: Props) {
                 placeholder="Search messages..."
                 className="bg-zinc-900 border-zinc-800 placeholder:text-zinc-400"
               />
-              <Button size="icon" variant="ghost">
+              <Button className="text-slate-50" size="icon" variant="ghost">
                 <Search className="h-4 w-4" />
               </Button>
             </form>
@@ -166,7 +175,7 @@ export default function ChatTemplate({ socket, username, room }: Props) {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex flex-col bg-zinc-900">
+        <div className="h-screen overflow-y-scroll flex flex-col bg-zinc-900">
           <div className="flex h-[60px] items-center px-6 gap-4 border-b border-zinc-800">
             <div className="flex items-center gap-2">
               <Avatar>
@@ -185,7 +194,7 @@ export default function ChatTemplate({ socket, username, room }: Props) {
             </div>
           </div>
 
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className=" flex-1 p-4">
             <div className="space-y-4">
               <div className="flex items-end gap-2">
                 <Avatar className="h-8 w-8">
@@ -232,43 +241,77 @@ export default function ChatTemplate({ socket, username, room }: Props) {
                 </div>
               </div>
               {messageList.map((message, index) => {
-            return (
-              <div
-                key={index}
-                className={`flex flex-col p-2.5 mb-2 rounded-md w-[70%] sm:w-80 ${
-                  message.author === username
-                    ? "bg-purple-800 self-end text-white"
-                    : "bg-black self-start text-white"
-                }`}
-              >
-                <p className="font-bold">{message.author}</p>
-                <p>{message.message}</p>
-                <p className="text-sm font-light text-end">{message.time}</p>
-              </div>
-            );
-          })}
+                return (
+                  <div key={index} className={`flex items-end gap-2  ${message.author === username
+                    ? " items-end text-zinc-50 flex-row-reverse"
+                    : "text-zinc-50"
+                    }`}>
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="/placeholder.svg?height=32&width=32" />
+                      <AvatarFallback>{message.author}</AvatarFallback>
+                    </Avatar>
+                    <div className={`rounded-lg px-4 py-2 max-w-[75%] ${message.author === username
+                      ? "bg-blue-600 "
+                      : "bg-zinc-800 "}`}>
+                      <p className="text-sm text-zinc-50">
+                        {message.message}</p>
+                      <span className="text-xs text-zinc-200 mt-1 block">{message.time}</span>
+                    </div>
+                  </div>
+
+                );
+              })}
             </div>
           </ScrollArea>
+          <div className="h-auto p-4 border-t bg-zinc-950">
+          {selectedFiles && selectedFiles.length > 0 && (
+  <div className="flex mr-1 mb-2 flex-wrap">
+  {selectedFiles.length > 0 &&
+  selectedFiles.map((file, index) => (
+    <div
+      className="flex items-center text-slate-50 border rounded-lg p-2 space-x-2"
+      key={index}
+    >
+      <Button
+        size="sm"
+        onClick={() =>
+          setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
+        }
+      >
+        x
+      </Button>
+      <p>{file.name}</p>
+    </div>
+  ))}
 
-          <div className="p-4 border-t border-zinc-800">
-          <div className="flex flex-row justify-between items-center bg-slate-900 p-2 overflow-hidden rounded-md space-x-2">
-        <input
-          type="text"
-          placeholder="Type here"
-          onChange={(e) => setCurrentMessage(e.target.value)}
-          value={currentMessage}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          className="outline-none bg-transparent flex-1"
-        />
-        <IconSendFill
-          onClick={sendMessage}
-          className="cursor-pointer w-5 h-5 hover:text-white/70"
-        />
-      </div>
+  </div>
+)}
+
+<div className="h-auto flex gap-2 items-center">
+  <FileInput selectedFiles={selectedFiles} setSelectedFiles={setSelectedFiles}/>
+  <textarea
+    ref={textRef}
+    value={currentMessage}
+    onChange={handleInputChange}
+    className="w-full bg-zinc-900 border rounded-lg p-2 resize-none text-white"
+    rows={1}
+    placeholder="Type a message..."
+    onKeyDown={(e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }}
+  />
+  <IconSendFill
+    onClick={sendMessage}
+    className="cursor-pointer w-5 h-5 text-slate-50 hover:text-blue-400"
+  />
+</div>
+
           </div>
         </div>
       </div>
     </div>
   )
 }
-

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export async function* generateTextStream(prompt) {
     let data = JSON.stringify({
-        "model": "deepseek-coder:1.3b",
+        "model": "deepseek-coder:latest",
         "prompt": prompt
     });
 
