@@ -15,21 +15,13 @@ const ProtectedRouter: React.FC<ProtectedRouterProps> = ({ children }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const token = localStorage.getItem("token")
+                const token = localStorage.getItem("userData")
                 if (!token) {
-                    navigate('/userLogin')
+                    navigate('/login')
                     return
                 }
-
-                const response = await axios.get<{ user: any }>(
-                    `${import.meta.env.VITE_BASE_URI}/user/profile`,
-                    { withCredentials: true }
-                )
-
-                if (response.status === 201) {
-                    setUser(response.data.user)
                     setIsLoading(false)
-                }
+                
             } catch (error) {
                 console.error("Auth error:", error)
                 localStorage.removeItem("token")
