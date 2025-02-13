@@ -8,12 +8,14 @@ import { Socket } from "socket.io-client";
 import { FileInput } from "@/components/FileInput"
 import IconSendFill from "./IconSendFill";
 import React,{useRef} from "react"
+import axios from "axios";
+import { METHODS } from "node:http"
+import { m } from "framer-motion"
 interface Props {
   socket: Socket;
   username: string;
   room: string;
 }
-
 interface Message {
   room: string;
   id: string | undefined;
@@ -53,12 +55,47 @@ export default function ChatTemplate({ socket, username, room }: Props) {
         time: timeString,
       };
       setMessageList((prev) => [...prev, message]);
-      setCurrentAIMessage(null); // Reset current AI message
-      await socket.emit("generate_text", currentMessage);
+      setCurrentAIMessage(null);
       setCurrentMessage("");
+      chatapi();
+    }
+  }; 
+  const formData = new FormData();
+
+  // Append files correctly
+  if (selectedFiles && selectedFiles.length > 0) {
+    selectedFiles.forEach((file) => {
+      formData.append("filelist", file); // Appends each file separately
+    });
+  }
+  
+  // Convert messageList to JSON string before appending
+  const MessageList = messageList.map((m) => ({
+    user: m.author,
+    message: m.message
+  }));
+  
+  formData.append("messageList", JSON.stringify(MessageList));
+  formData.append("currentmessage", currentMessage);
+  
+  const chatapi = async () => {
+    try {
+      const response = await axios.post("http://localhost:3001/chat/messageslist", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // Required for FormData
+        },
+      });
+  
+      if (!response || response.status !== 200) {
+        throw new Error("Failed to send data");
+      }
+  
+      console.log("Data sent successfully", response.data);
+    } catch (error) {
+      console.error("Error:", error);
     }
   };
-
+  
   useEffect(() => {
     socket.on("receive_message", (data: Message) => {
       setMessageList((prev) => [...prev, data]);
@@ -73,13 +110,11 @@ export default function ChatTemplate({ socket, username, room }: Props) {
         .padStart(2, "0")}`;
 
       if (currentAIMessage) {
-        // Append to the current AI message
         setCurrentAIMessage((prev) => ({
           ...prev!,
           message: prev!.message + chunk,
         }));
       } else {
-        // Create a new AI message
         const message: Message = {
           room,
           id: socket.id,
@@ -109,12 +144,20 @@ export default function ChatTemplate({ socket, username, room }: Props) {
     }
   }, [currentAIMessage]);
 
-
+  const deleteFile = async (file: File) => {
+    try {
+      const response = await axios.delete(`http://localhost:3001/file/deleteUploads/${file.name}`,{
+      });
+      console.error(response);
+    } catch (error) {
+      console.error(`Error ${file.name}:`, error);
+    }
+  };
   return (
     <div className="dark ">
       <div className="h-screen grid lg:grid-cols-[280px_1fr]">
         {/* Sidebar */}
-        <div className="h-screen  overflow-y-scroll border-r bg-zinc-950 lg:block">
+        <div className="h-screen overflow-y-scroll border-r no-scrollbar bg-zinc-950 lg:block">
           <div className="flex h-[60px] items-center px-6 gap-4 border-b">
             <Button variant="ghost" size="icon" className="lg:hidden">
               <Menu className="h-6 w-6" />
@@ -175,7 +218,7 @@ export default function ChatTemplate({ socket, username, room }: Props) {
         </div>
 
         {/* Main Chat Area */}
-        <div className="h-screen overflow-y-scroll flex flex-col bg-zinc-900">
+        <div className="h-screen overflow-y-scroll no-scrollbar flex flex-col bg-zinc-900">
           <div className="flex h-[60px] items-center px-6 gap-4 border-b border-zinc-800">
             <div className="flex items-center gap-2">
               <Avatar>
@@ -250,10 +293,10 @@ export default function ChatTemplate({ socket, username, room }: Props) {
                       <AvatarImage src="/placeholder.svg?height=32&width=32" />
                       <AvatarFallback>{message.author}</AvatarFallback>
                     </Avatar>
-                    <div className={`rounded-lg px-4 py-2 max-w-[75%] ${message.author === username
+                    <div className={`text-wrap break-words h-auto rounded-lg px-4 py-2 max-w-[75%] ${message.author === username
                       ? "bg-blue-600 "
                       : "bg-zinc-800 "}`}>
-                      <p className="text-sm text-zinc-50">
+                      <p className=" text-sm text-zinc-50">
                         {message.message}</p>
                       <span className="text-xs text-zinc-200 mt-1 block">{message.time}</span>
                     </div>
@@ -274,8 +317,9 @@ export default function ChatTemplate({ socket, username, room }: Props) {
     >
       <Button
         size="sm"
-        onClick={() =>
-          setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
+        onClick={() =>{
+          setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index)),deleteFile(file)
+        }
         }
       >
         x
@@ -293,7 +337,7 @@ export default function ChatTemplate({ socket, username, room }: Props) {
     ref={textRef}
     value={currentMessage}
     onChange={handleInputChange}
-    className="w-full bg-zinc-900 border rounded-lg p-2 resize-none text-white"
+    className="w-full bg-zinc-900 border rounded-lg p-2 resize-none no-scrollbar text-white"
     rows={1}
     placeholder="Type a message..."
     onKeyDown={(e) => {
