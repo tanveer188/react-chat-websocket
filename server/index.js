@@ -4,6 +4,12 @@ import cors from "cors";
 import { Server } from "socket.io";
 import { generateTextStream } from "./chat.js"; // Ensure chat.js is in the same directory
 
+import express, { json, urlencoded } from "express";
+const app=express()
+import { createServer } from "http";
+import cors from "cors";
+import { Server } from "socket.io";
+import { generateTextStream } from "./chat.js"; // Ensure chat.js is in the same directory
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 import Db from "./Db/Database.js";
@@ -12,6 +18,19 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}))
 Db();
 const server = http.createServer(app);
+
+// Add these middleware before your routes
+app.use(json());
+app.use(urlencoded({ extended: true }));
+
+// ... existing code ... 
+const server = createServer(app);
+import userRoute from "./Router/userRoute.js";
+
+app.use("/user",userRoute);
+
+
+
 
 const io = new Server(server, {
   cors: {

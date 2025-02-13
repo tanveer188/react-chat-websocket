@@ -17,9 +17,16 @@
     "@langchain/ollama": "^0.1.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "end-of-stream": "^1.4.4",
     "express": "^4.19.2",
-    "nodemon": "^3.1.4",
     "server": "file:",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "langchain": "^0.3.15",
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.1.9",
+    "pdf-parse": "^1.1.1",
+    "puppeteer": "^24.2.0",
+    "ts-node": "^10.9.2",
+    "mongoose": "^8.10.0"
   }
 }

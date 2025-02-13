@@ -1,12 +1,23 @@
-const mongoose  = require("mongoose");
+import mongoose from 'mongoose';
+
 const userSchema = new mongoose.Schema({
   username: String,
   email: String,
-  password: String,
-  profile:{
-    type:String,
-    default:"",
-  }
+  password: String
 });
-module.exports=mongoose.model("user",userSchema);
+
+const User = mongoose.model('User', userSchema);
+
+export const find = () => {
+  return User.find();
+};
+
+export const create = (userData) => {
+  const user = new User(userData);
+  return user.save();
+};
+
+export const findOne = (query) => {
+  return User.findOne(query);
+};
 
