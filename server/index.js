@@ -3,7 +3,7 @@ const app=express()
 import { createServer } from "http";
 import cors from "cors";
 import { Server } from "socket.io";
-import { generateTextStream } from "./chat.js"; // Ensure chat.js is in the same directory
+import { generateTextStream } from "./chat_advance.js"; // Ensure chat.js is in the same directory
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 import Db from "./Db/Database.js";
@@ -40,7 +40,12 @@ io.on("connection", (socket) => {
   socket.on("generate_text", async (prompt) => {
     console.log(prompt)
     try {
-      for await (const output of generateTextStream(prompt)) {
+      const file_names = []
+      const messageList = [{
+          user: "what is ai",
+          message: "ai stand for artificial intelligence"
+      }]
+      for await (const output of generateTextStream(file_names,messageList,prompt)) {
         process.stdout.write(output);
         socket.emit("text_chunk", output);
       }
