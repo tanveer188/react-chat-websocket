@@ -16,12 +16,11 @@ app.use(urlencoded({ extended: true }));
 // ... existing code ... 
 const server = createServer(app);
 import userRoute from "./Router/userRoute.js";
-
+import uploardRoute from "./Router/uploardRoute.js";
+import chatlistRoute from "./Router/chatlistRoute.js"
 app.use("/user",userRoute);
-
-
-
-
+app.use("/file",uploardRoute);
+app.use("/chat",chatlistRoute);
 const io = new Server(server, {
   cors: {
     origin: CORS_ORIGIN,
@@ -29,6 +28,8 @@ const io = new Server(server, {
   },
 });
 
+                               
+//+___________________________/      \__________________________+\\
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 

@@ -8,12 +8,14 @@ import { Socket } from "socket.io-client";
 import { FileInput } from "@/components/FileInput"
 import IconSendFill from "./IconSendFill";
 import React,{useRef} from "react"
+import axios from "axios";
+import { METHODS } from "node:http"
+import { m } from "framer-motion"
 interface Props {
   socket: Socket;
   username: string;
   room: string;
 }
-
 interface Message {
   room: string;
   id: string | undefined;
@@ -53,12 +55,47 @@ export default function ChatTemplate({ socket, username, room }: Props) {
         time: timeString,
       };
       setMessageList((prev) => [...prev, message]);
-      setCurrentAIMessage(null); // Reset current AI message
-      await socket.emit("generate_text", currentMessage);
+      setCurrentAIMessage(null);
       setCurrentMessage("");
+      chatapi();
+    }
+  }; 
+  const formData = new FormData();
+
+  // Append files correctly
+  if (selectedFiles && selectedFiles.length > 0) {
+    selectedFiles.forEach((file) => {
+      formData.append("filelist", file); // Appends each file separately
+    });
+  }
+  
+  // Convert messageList to JSON string before appending
+  const MessageList = messageList.map((m) => ({
+    user: m.author,
+    message: m.message
+  }));
+  
+  formData.append("messageList", JSON.stringify(MessageList));
+  formData.append("currentmessage", currentMessage);
+  
+  const chatapi = async () => {
+    try {
+      const response = await axios.post("http://localhost:3001/chat/messageslist", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // Required for FormData
+        },
+      });
+  
+      if (!response || response.status !== 200) {
+        throw new Error("Failed to send data");
+      }
+  
+      console.log("Data sent successfully", response.data);
+    } catch (error) {
+      console.error("Error:", error);
     }
   };
-
+  
   useEffect(() => {
     socket.on("receive_message", (data: Message) => {
       setMessageList((prev) => [...prev, data]);
@@ -73,13 +110,11 @@ export default function ChatTemplate({ socket, username, room }: Props) {
         .padStart(2, "0")}`;
 
       if (currentAIMessage) {
-        // Append to the current AI message
         setCurrentAIMessage((prev) => ({
           ...prev!,
           message: prev!.message + chunk,
         }));
       } else {
-        // Create a new AI message
         const message: Message = {
           room,
           id: socket.id,
@@ -109,7 +144,15 @@ export default function ChatTemplate({ socket, username, room }: Props) {
     }
   }, [currentAIMessage]);
 
-
+  const deleteFile = async (file: File) => {
+    try {
+      const response = await axios.delete(`http://localhost:3001/file/deleteUploads/${file.name}`,{
+      });
+      console.error(response);
+    } catch (error) {
+      console.error(`Error ${file.name}:`, error);
+    }
+  };
   return (
     <div className="dark ">
       <div className="h-screen grid lg:grid-cols-[280px_1fr]">
@@ -274,8 +317,9 @@ export default function ChatTemplate({ socket, username, room }: Props) {
     >
       <Button
         size="sm"
-        onClick={() =>
-          setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
+        onClick={() =>{
+          setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index)),deleteFile(file)
+        }
         }
       >
         x
