@@ -1,9 +1,10 @@
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
-dotenv.config();
+import "dotenv/config";
 
-const Db = mongoose.connect("mongodb://localhost:27017/ChatGpt")
+const { DATABASE_CONNECTION_URL } = process.env;
+
+const Db = mongoose.connect(DATABASE_CONNECTION_URL)
   .then(() => {
     console.log("Database Connectivity");
   })

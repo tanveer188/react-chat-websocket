@@ -5,6 +5,7 @@ import "dotenv/config"
 import { loadAndSplitTheDocs, vectorSaveAndSearch } from "./ai/utils/ai.js";
 
 import { DataAPIClient } from "@datastax/astra-db-ts";
+import { count } from "console";
 
 const { ASTRA_DB_NAMESPACE, ASTRA_DB_COLLECTION, ASTRA_DB_API_ENDPOINT, ASTRA_DB_APPLICATION_TOKEN } = process.env
 
@@ -23,6 +24,7 @@ const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN)
 const db = client.db(ASTRA_DB_API_ENDPOINT, { namespace: ASTRA_DB_NAMESPACE })
 
 export async function* generateTextStream(file_names, messageList, latestMessage) {
+    console.log("generateTextStream", file_names, messageList, latestMessage)
     try {
 
         let docContext = ""

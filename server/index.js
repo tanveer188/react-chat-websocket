@@ -1,29 +1,24 @@
 import express from "express";
-import http from "http";// Ensure chat.js is in the same directory
-
-import  { json, urlencoded } from "express";
-const app=express()
+import http from "http";
+import { json, urlencoded } from "express";
 import { createServer } from "http";
 import cors from "cors";
 import { Server } from "socket.io";
-import { generateTextStream } from "./chat_advance.js"; // Ensure chat.js is in the same directory
-const PORT = process.env.PORT || 3001;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
+import { generateTextStream } from "./chat_advance.js";
 import Db from "./Db/Database.js";
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({extended:true}))
-const server = http.createServer(app);
-
-// Add these middleware before your routes
-app.use(json());
-app.use(urlencoded({ extended: true }));
 import userRoute from "./Router/userRoute.js";
 import uploardRoute from "./Router/uploardRoute.js";
-import chatlistRoute from "./Router/chatlistRoute.js"
-app.use("/user",userRoute);
-app.use("/file",uploardRoute);
-app.use("/chat",chatlistRoute);
+import chatlistRoute from "./Router/chatlistRoute.js";
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: CORS_ORIGIN,
@@ -31,8 +26,11 @@ const io = new Server(server, {
   },
 });
 
-                               
-//+___________________________/      \__________________________+\\
+// Pass io to the chatlistRoute
+app.use("/user", userRoute);
+app.use("/file", uploardRoute);
+app.use("/chat", chatlistRoute(io));
+
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
@@ -57,7 +55,6 @@ io.on("connection", (socket) => {
       console.error("Error generating text:", error);
     }
   });
-
 
   socket.on("disconnect", () => {
     console.log(`User Disconnected: ${socket.id}`);
