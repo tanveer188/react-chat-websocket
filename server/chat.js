@@ -1,9 +1,8 @@
-const axios = require('axios');
-const fs = require('fs');
+import axios from 'axios';
 
-async function* generateTextStream(prompt) {
+export async function* generateTextStream(prompt) {
     let data = JSON.stringify({
-        "model": "deepseek-coder:1.3b",
+        "model": "deepseek-coder:latest",
         "prompt": prompt
     });
 
@@ -28,12 +27,3 @@ async function* generateTextStream(prompt) {
         }
     }
 }
-
-module.exports = { generateTextStream };
-
-// Example usage: read tokens as they arrive
-// (async () => {
-//     for await (const output of generateTextStream("why sky is blue")) {
-//         process.stdout.write(output);
-//     }
-// })();
