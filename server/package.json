@@ -7,7 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js",
-    "seed": "ts-node ./scripts/loadDb.ts"
+    "seed": "ts-node ./scripts/loadDb.ts",
+    "seedcsv": "ts-node --esm ./scripts/loadcsv.ts"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +17,7 @@
     "@langchain/community": "^0.3.29",
     "@langchain/ollama": "^0.1.6",
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "dotenv": "^16.4.7",
     "end-of-stream": "^1.4.4",
     "express": "^4.19.2",
@@ -28,5 +30,8 @@
     "server": "file:",
     "socket.io": "^4.7.5",
     "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
   }
 }

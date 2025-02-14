@@ -6,7 +6,6 @@ import Login from "./app/login/page";
 import Home from "./app/page";
 import SignupPages from "./app/login/signupPages";
 import { UserContext } from './context/UserContext';
-import ProtectedRouter from "./components/PotectedRouter";
 
 
 const PORT = import.meta.env.PORT || '3001';
@@ -22,13 +21,8 @@ function App() {
   return (
     <UserContext.Provider value={{ user, setUser }}>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login username={username} setUsername={setUsername} room={room} setRoom={setRoom} />} />
-        <Route path="/signup" element={<SignupPages />} />
         <Route path="/chat" element={
-          <ProtectedRouter>
           <Chat socket={socket} username={username} room={room} />
-          </ProtectedRouter>
       } />
       </Routes>
     </UserContext.Provider>

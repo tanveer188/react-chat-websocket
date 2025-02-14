@@ -239,50 +239,7 @@ export default function ChatTemplate({ socket, username, room }: Props) {
 
           <ScrollArea className=" flex-1 p-4">
             <div className="space-y-4">
-              <div className="flex items-end gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>SC</AvatarFallback>
-                </Avatar>
-                <div className="rounded-lg bg-zinc-800 px-4 py-2 max-w-[75%]">
-                  <p className="text-sm text-zinc-50">Hi! How are you doing?</p>
-                  <span className="text-xs text-zinc-400 mt-1 block">2:30 PM</span>
-                </div>
-              </div>
-              <div className="flex items-end gap-2 flex-row-reverse">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>ME</AvatarFallback>
-                </Avatar>
-                <div className="rounded-lg bg-blue-600 px-4 py-2 max-w-[75%]">
-                  <p className="text-sm text-zinc-50">
-                    Hey! I'm doing great, thanks for asking. Just finished up with the project presentation.
-                  </p>
-                  <span className="text-xs text-zinc-200 mt-1 block">2:31 PM</span>
-                </div>
-              </div>
-              <div className="flex items-end gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>SC</AvatarFallback>
-                </Avatar>
-                <div className="rounded-lg bg-zinc-800 px-4 py-2 max-w-[75%]">
-                  <p className="text-sm text-zinc-50">That's awesome! How did it go?</p>
-                  <span className="text-xs text-zinc-400 mt-1 block">2:32 PM</span>
-                </div>
-              </div>
-              <div className="flex items-end gap-2 flex-row-reverse">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>ME</AvatarFallback>
-                </Avatar>
-                <div className="rounded-lg bg-blue-600 px-4 py-2 max-w-[75%]">
-                  <p className="text-sm text-zinc-50">
-                    It went really well! The client loved our new design direction.
-                  </p>
-                  <span className="text-xs text-zinc-200 mt-1 block">2:33 PM</span>
-                </div>
-              </div>
+              
               {messageList.map((message, index) => {
                 return (
                   <div key={index} className={`flex items-end gap-2  ${message.author === username

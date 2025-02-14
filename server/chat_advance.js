@@ -60,28 +60,32 @@ export async function* generateTextStream(file_names, messageList, latestMessage
         });
 
         const messages = messageList.map(msg => `${msg.user}: ${msg.message}`).join("\n");
-
-        const template = `You are an AI history assistant. Answer the question enclosed in "?" based only on the data provided.
-    Data is enclosed in \
-    If the answer is not in the provided data, respond with "The answer is not in my knowledge."
-    previous messages:
-    ${messages}
-    //////////////////////////////
-    ${docContext}
-    ${context}
-    //////////////////////////////
-    ??????????????????????????????
-    Question: ${latestMessage}
-    ????????????????????????????`
+        const template = `You are an AI mental health advisor. Answer the question enclosed in "?" based only on the data provided.
+        Sample conversation is enclosed in \
+        If the answer is not in the provided data do not answer the question."
+        previous messages:
+        ${messages}
+        //////////////////////////////
+        ${docContext}
+        ${context}
+        //////////////////////////////
+        ??????????????????????????????
+        Question: ${latestMessage}
+        ????????????????????????????`
         console.log("template", template)
 
         const stream = await ollama.stream(template);
 
         const chunks = [];
+        let isThink = false;
         for await (const chunk of stream) {
+            if (isThink) {
+                chunks.push(chunk);
+                yield chunk;
+            } else if (chunk.includes("</think>")) {
+                isThink = true;
+            }
             process.stdout.write(chunk);
-            yield chunk;
-            chunks.push(chunk);
         }
 
     } catch (err) {
