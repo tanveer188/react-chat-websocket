@@ -5,7 +5,7 @@ import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 export const loadAndSplitTheDocs = async (file_name) => {
   // load the uploaded file data
-  const file_path = file_name.map((name) => `d:/Project/chatapp/react-chat-websocket/server/uploads/${name}`);
+const file_path = file_name.map((name) => `d:/Project/chatapp/react-chat-websocket/server/uploads/${name}`);
 const allSplits = [];
 for (const path of file_path) {
     const loader = new PDFLoader(path);

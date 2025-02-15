@@ -52,26 +52,25 @@ export async function* generateTextStream(file_names, messageList, latestMessage
             docContext = ""
         }
         const splits = await loadAndSplitTheDocs(file_names);
-        const searches = await vectorSaveAndSearch(splits, latestMessage);
+        // const searches = await vectorSaveAndSearch(splits, latestMessage);
 
         let context = "";
-        searches.forEach((search) => {
-            context + "\n\n" + search.pageContent;
+        splits.forEach((sp) => {
+            // console.log("sp", sp.pageContent)
+            context = context + "\n\n" + sp.pageContent;
         });
 
         const messages = messageList.map(msg => `${msg.user}: ${msg.message}`).join("\n");
-        const template = `You are an AI mental health advisor. Answer the question enclosed in "?" based only on the data provided.
-        Sample conversation is enclosed in \
+        const template = `You are an AI mental health advisor.the sample conversation data provided.
         If the answer is not in the provided data do not answer the question."
         previous messages:
         ${messages}
-        //////////////////////////////
-        ${docContext}
+        pdf context:
         ${context}
-        //////////////////////////////
-        ??????????????????????????????
-        Question: ${latestMessage}
-        ????????????????????????????`
+        reply like this data:
+        ${docContext}
+        Question: 
+        ${latestMessage}`
         console.log("template", template)
 
         const stream = await ollama.stream(template);
